@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 
@@ -173,7 +174,7 @@ public class Grid extends Actor {
 
             TextureRegion texture = res.getTextureForType(type);
             batch.draw(texture, getX(), getY(), getOriginX(), getOriginY(),
-                    getWidth(), getHeight(), getScaleX(), getScaleY(), getRotation());
+            getWidth(), getHeight(), getScaleX(), getScaleY(), getRotation());
 
         }
 
@@ -211,15 +212,16 @@ public class Grid extends Actor {
             newField.put(this);
 
             // animate motion
-            float moveDuration = dist * 0.2f; // second
-            addAction(Actions.moveTo(pos.x, pos.y, moveDuration));
+            // longer distances shall not take linearly more time - because of acceleration
+            float moveDuration = (float) Math.pow(dist, 0.5f) * 0.15f; // seconds
+            addAction(Actions.moveTo(pos.x, pos.y, moveDuration, Interpolation.fade));
         }
 
         @Override
         public String toString() {
             return "Stone{" +
-                    "pos=" + pos +
-                    '}';
+            "pos=" + pos +
+            '}';
         }
     }
 }
