@@ -12,32 +12,31 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-/**
- * @author tkotula
- */
 public class Grid extends Actor {
 
     private Res res;
     private final Random random = new Random();
 
-    final int width = 7;
-    final int height = 7;
+    final int width;
+    final int height;
 
-    final List<Field> fields = new ArrayList<>(width * height);
+    final List<Field> fields;
     private Field outsideField;
 
     final List<Grid.Stone> stones = new ArrayList<>();
 
-    public Grid() {
-
+    public Grid(int width, int height) {
         res = Res.getInstance();
 
         outsideField = new Field();
         outsideField.type = Type.BORDER;
 
-        // this order is somehow important!
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
+        this.width = width;
+        this.height = height;
+
+        fields = new ArrayList<>(this.width * this.height);
+        for (int y = 0; y < this.height; y++) {
+            for (int x = 0; x < this.width; x++) {
                 Field field = new Field();
                 fields.add(field);
             }
@@ -120,6 +119,8 @@ public class Grid extends Actor {
             }
             switch (type) {
                 case BORDER:
+                case SOLID:
+                case STONE:
                     return false;
                 default:
                     return true;
