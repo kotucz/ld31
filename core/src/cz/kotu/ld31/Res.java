@@ -1,7 +1,8 @@
 package cz.kotu.ld31;
 
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.utils.TiledDrawable;
 
 /**
  * @author tkotula
@@ -14,26 +15,21 @@ public class Res {
         instance = new Res();
     }
 
-    Texture badlogic = new Texture("badlogic.jpg");
-    Texture pixelArt = new Texture("art.png");
+    TextureAtlas atlas = new TextureAtlas("art.pack");
 
-    TextureRegion stone1 = subregion(0, 0);
-    TextureRegion ground1 = subregion(2, 1);
-    TextureRegion solid1 = subregion(1, 7);
-    TextureRegion target1 = subregion(1, 3);
-    TextureRegion target2 = subregion(4, 4);
+    TextureRegion stone1 = atlas.findRegion("stone");
+    TextureRegion ground1 = atlas.findRegion("ground");
+    TextureRegion background = atlas.findRegion("background-large");
+    TiledDrawable backgroundDrawable = new TiledDrawable(background);
+    TextureRegion box = atlas.findRegion("box");
+    TextureRegion target = atlas.findRegion("target");
 
-    TextureRegion questionMark = subregion(4, 2);
+    TextureRegion questionMark = atlas.findRegion("questionmark");
 
-    TextureRegion green = subregion(0, 5);
+    TextureRegion win = atlas.findRegion("win");
 
     static Res getInstance() {
         return instance;
-    }
-
-    private TextureRegion subregion(int col, int row) {
-        int S = 32;
-        return new TextureRegion(pixelArt, col * S, row * S, S, S);
     }
 
     TextureRegion getTextureForType(Type type) {
@@ -44,9 +40,9 @@ public class Res {
                 return stone1;
             case BORDER:
             case SOLID:
-                return solid1;
+                return box;
             case TARGET:
-                return target1;
+                return target;
             default:
                 return questionMark;
         }

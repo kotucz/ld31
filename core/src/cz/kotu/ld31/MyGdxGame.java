@@ -43,6 +43,7 @@ public class MyGdxGame extends ApplicationAdapter {
         res = Res.getInstance();
         levels = new Levels();
 
+
         batch = new SpriteBatch();
 
         viewport = new ExtendViewport(320, 240);
@@ -76,7 +77,7 @@ public class MyGdxGame extends ApplicationAdapter {
         loadLevel(levels.LIST[currentLevel]);
 
         victoryShown = false;
-        winAnimation = new Image(res.green);
+        winAnimation = new Image(res.win);
         winAnimation.setBounds(0, 0, 240, 240);
         winAnimation.setOrigin(Align.center);
         resetVictoryAnimation();
@@ -193,6 +194,9 @@ public class MyGdxGame extends ApplicationAdapter {
 
     @Override
     public void render() {
+
+        // process all input
+
         if (!isAnimatingMove()) {
             if (!victoryShown) {
                 if (isVictory()) {
@@ -211,13 +215,22 @@ public class MyGdxGame extends ApplicationAdapter {
 
         stage.act(Gdx.graphics.getDeltaTime());
 
+        // update visuals
+
         updateGridPos();
 
         highlightStones();
 
-        // TODO set nice background image
+        // perform drawing
+
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+        // nice background image
+        batch.begin();
+        res.backgroundDrawable.draw(batch, 0, 0, viewport.getWorldWidth(), viewport.getWorldHeight());
+//        res.backgroundDrawable.draw(batch, 0, 0, 0, 0, viewport.getWorldWidth(), viewport.getWorldHeight(), 1, 1, 0);
+        batch.end();
 
         batch.setProjectionMatrix(viewport.getCamera().combined);
 

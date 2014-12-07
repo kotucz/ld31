@@ -67,7 +67,7 @@ public class Grid extends Actor {
                         batch.draw(res.ground1, x, y, 1, 1);
                         Color tmpColor = batch.getColor();
                         batch.setColor(0, 1.f, 0, 0.4f);
-                        batch.draw(res.target2, x, y, 1, 1);
+                        batch.draw(res.target, x, y, 1, 1);
                         batch.setColor(tmpColor);
 
                         break;
