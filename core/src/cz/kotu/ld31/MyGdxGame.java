@@ -4,6 +4,7 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector3;
@@ -42,7 +43,10 @@ public class MyGdxGame extends ApplicationAdapter {
         viewport = new ExtendViewport(20, 15);
         stage = new Stage(viewport);
 
-        stage.setDebugAll(DEBUG);
+        if (DEBUG) {
+            stage.setDebugAll(true);
+            currentLevel = 2;
+        }
 
         Gdx.input.setInputProcessor(new MoveInputProcessor());
 
@@ -141,11 +145,19 @@ public class MyGdxGame extends ApplicationAdapter {
 
         batch.setProjectionMatrix(viewport.getCamera().combined);
 
+        highlightStones();
+
         stage.draw();
     }
 
     void processInput() {
         if (isAnimatingMove()) {
+            return;
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.CONTROL_RIGHT) ||
+        Gdx.input.isKeyJustPressed(Input.Keys.CONTROL_LEFT) ||
+        Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+            switchStone();
             return;
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
@@ -178,6 +190,31 @@ public class MyGdxGame extends ApplicationAdapter {
         return false;
     }
 
+    private void highlightStones() {
+        if (isAnimatingMove()) {
+            return;
+        }
+        // highlight selected stone
+        for (Grid.Stone stone : grid.stones) {
+            Color color;
+            if (stone.isOnTarget()) {
+                color = Color.GREEN;
+            } else if (handStone == stone) {
+                color = Color.WHITE;
+            } else {
+                color = Color.GRAY;
+            }
+            stone.setColor(color);
+        }
+    }
+
+    private void switchStone() {
+        int i = grid.stones.indexOf(handStone);
+        i++;
+        i %= grid.stones.size();
+        handStone = grid.stones.get(i);
+    }
+
     private boolean isAnimatingMove() {
         for (Actor actor : stage.getActors()) {
             if (actor.getActions().size > 0) {
@@ -190,7 +227,7 @@ public class MyGdxGame extends ApplicationAdapter {
     boolean isVictory() {
         int metTargets = 0;
         for (Grid.Stone stone : grid.stones) {
-            if (grid.getField(stone.pos).type == Type.TARGET) {
+            if (stone.isOnTarget()) {
                 metTargets++;
             }
         }

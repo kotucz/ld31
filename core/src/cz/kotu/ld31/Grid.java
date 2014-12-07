@@ -177,6 +177,10 @@ public class Grid extends Actor {
 
         }
 
+        boolean isOnTarget() {
+            return getField(pos).type == Type.TARGET;
+        }
+
         /**
          * @param dir   unity direction
          * @param where result move position
