@@ -17,11 +17,12 @@ public class Res {
 
     TextureAtlas atlas = new TextureAtlas("art.pack");
 
-    TextureRegion stone1 = atlas.findRegion("stone");
-    TextureRegion ground1 = atlas.findRegion("ground");
+    TextureRegion stone = atlas.findRegion("stone");
+    TextureRegion ground = atlas.findRegion("ground2");
+    TiledDrawable groundTiled = new TiledDrawable(ground);
     TextureRegion background = atlas.findRegion("background-large");
-    TiledDrawable backgroundDrawable = new TiledDrawable(background);
-    TextureRegion box = atlas.findRegion("box");
+    TiledDrawable backgroundTiled = new TiledDrawable(background);
+    TextureRegion box = atlas.findRegion("box2");
     TextureRegion target = atlas.findRegion("target");
 
     TextureRegion questionMark = atlas.findRegion("questionmark");
@@ -35,9 +36,9 @@ public class Res {
     TextureRegion getTextureForType(Type type) {
         switch (type) {
             case VOID:
-                return ground1;
+                return ground;
             case STONE:
-                return stone1;
+                return stone;
             case BORDER:
             case SOLID:
                 return box;

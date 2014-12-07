@@ -33,6 +33,7 @@ public class MyGdxGame extends ApplicationAdapter {
     Grid grid;
     Grid.Stone handStone;
     Actor winAnimation;
+    TextButton[] levelButtons;
     boolean victoryShown;
     int currentLevel;
     Group boardGroup;
@@ -149,16 +150,15 @@ public class MyGdxGame extends ApplicationAdapter {
 
         TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle();
         buttonStyle.font = bitmapFont;
-        buttonStyle.up = new TextureRegionDrawable(res.stone1);
+        buttonStyle.up = new TextureRegionDrawable(res.stone);
 
         {
             final int perRow = 2;
             Table menuTable = new Table();
             menuTable.setSkin(skin);
-            menuTable.add("MENU").colspan(perRow);
-            menuTable.row();
 
             int rb = 0; // num buttons on row
+            levelButtons = new TextButton[levels.LIST.length];
             for (int lvl = 0; lvl < levels.LIST.length; lvl++) {
                 addLevelButton(menuTable, buttonStyle, lvl);
                 rb++;
@@ -190,6 +190,7 @@ public class MyGdxGame extends ApplicationAdapter {
             }
         });
         menuTable.add(button);
+        levelButtons[level] = button;
     }
 
     @Override
@@ -221,6 +222,8 @@ public class MyGdxGame extends ApplicationAdapter {
 
         highlightStones();
 
+        highlightLevels();
+
         // perform drawing
 
         Gdx.gl.glClearColor(0, 0, 0, 1);
@@ -228,8 +231,7 @@ public class MyGdxGame extends ApplicationAdapter {
 
         // nice background image
         batch.begin();
-        res.backgroundDrawable.draw(batch, 0, 0, viewport.getWorldWidth(), viewport.getWorldHeight());
-//        res.backgroundDrawable.draw(batch, 0, 0, 0, 0, viewport.getWorldWidth(), viewport.getWorldHeight(), 1, 1, 0);
+        res.backgroundTiled.draw(batch, 0, 0, viewport.getWorldWidth(), viewport.getWorldHeight());
         batch.end();
 
         batch.setProjectionMatrix(viewport.getCamera().combined);
@@ -290,6 +292,20 @@ public class MyGdxGame extends ApplicationAdapter {
             }
         }
         return false;
+    }
+
+    private void highlightLevels() {
+        for (int i = 0; i < levelButtons.length; i++) {
+            Color color;
+            if (currentLevel == i) {
+                color = Color.WHITE;
+            } else if (i < currentLevel) {
+                color = new Color(0, 0.5f, 0, 1);
+            } else {
+                color = Color.GRAY;
+            }
+            levelButtons[i].setColor(color);
+        }
     }
 
     private void highlightStones() {
