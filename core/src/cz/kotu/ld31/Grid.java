@@ -52,6 +52,10 @@ public class Grid extends Actor {
     @Override
     public void draw(Batch batch, float parentAlpha) {
         super.draw(batch, parentAlpha);
+
+        Color color = getColor();
+        batch.setColor(color.r, color.g, color.b, color.a * parentAlpha);
+
         int border = 2;
         for (int y = 0 - border; y < height + border; y++) {
             for (int x = 0 - border; x < width + border; x++) {
@@ -64,12 +68,6 @@ public class Grid extends Actor {
 
             }
         }
-
-        for (Grid.Stone stone : stones) {
-            TextureRegion texture = res.getTextureForType(stone.type);
-            batch.draw(texture, stone.pos.x, stone.pos.y);
-        }
-
     }
 
     private void drawGrid(ShapeRenderer shapeRenderer) {
@@ -105,6 +103,7 @@ public class Grid extends Actor {
         Stone stone = new Stone();
         stone.setGridPos(pos);
         getField(pos).put(stone);
+        stones.add(stone);
         return stone;
     }
 
@@ -199,7 +198,7 @@ public class Grid extends Actor {
             return false;
         }
 
-        void doMoveTo(Vec to) {
+        boolean doMoveTo(Vec to) {
             final int dist = pos.dist1(to);
 
             final Field currentField = getField(pos);
@@ -215,6 +214,7 @@ public class Grid extends Actor {
             // longer distances shall not take linearly more time - because of acceleration
             float moveDuration = (float) Math.pow(dist, 0.5f) * 0.15f; // seconds
             addAction(Actions.moveTo(pos.x, pos.y, moveDuration, Interpolation.fade));
+            return true;
         }
 
         @Override

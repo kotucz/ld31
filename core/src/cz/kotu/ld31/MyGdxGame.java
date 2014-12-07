@@ -9,11 +9,17 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.actions.Actions;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 
 public class MyGdxGame extends ApplicationAdapter {
 
+    public static final boolean DEBUG = true;
+
     Res res;
+
+    Levels levels;
 
     SpriteBatch batch;
     ExtendViewport viewport;
@@ -21,16 +27,22 @@ public class MyGdxGame extends ApplicationAdapter {
 
     Grid grid;
     Grid.Stone handStone;
+    Image winAnimation;
+    boolean victoryShown;
+    int currentLevel;
 
     @Override
     public void create() {
         Res.init();
         res = Res.getInstance();
+        levels = new Levels();
 
         batch = new SpriteBatch();
 
         viewport = new ExtendViewport(20, 15);
         stage = new Stage(viewport);
+
+        stage.setDebugAll(DEBUG);
 
         Gdx.input.setInputProcessor(new MoveInputProcessor());
 
@@ -53,17 +65,20 @@ public class MyGdxGame extends ApplicationAdapter {
         viewport.setMinWorldWidth(9);
         viewport.setMinWorldHeight(9);
 
-        Level level = new Level(7, 7,
-        "   X   " +
-        " 0   0 " +
-        "       " +
-        "X  T  X" +
-        "       " +
-        " 0   0 " +
-        "   X   "
-        );
+        loadLevel(levels.LIST[currentLevel]);
 
-        loadLevel(level);
+        victoryShown = false;
+        winAnimation = new Image(res.green);
+        winAnimation.setColor(1, 1, 1, 0);
+        winAnimation.setPosition(5, 5);
+        winAnimation.setScale(1f / 32);
+        winAnimation.setBounds(0, 0, 1, 1);
+        stage.addActor(winAnimation);
+    }
+
+    void startNextLevel() {
+        currentLevel++;
+        resetLevel();
     }
 
     public void loadLevel(Level level) {
@@ -102,11 +117,26 @@ public class MyGdxGame extends ApplicationAdapter {
 
     @Override
     public void render() {
-        processInput();
+        if (!isAnimatingMove()) {
+            if (!victoryShown) {
+                if (isVictory()) {
+                    // TODO mark level solved
+                    animateVictory();
+                    victoryShown = true;
+                }
+                processInput();
+            } else {
+                if (Gdx.input.isKeyJustPressed(Input.Keys.ANY_KEY)) {
+                    startNextLevel();
+                    return;
+                }
+            }
+        }
 
         stage.act(Gdx.graphics.getDeltaTime());
 
-        Gdx.gl.glClearColor(1, 0, 0, 1);
+        // TODO set nice background image
+        Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         batch.setProjectionMatrix(viewport.getCamera().combined);
@@ -138,13 +168,14 @@ public class MyGdxGame extends ApplicationAdapter {
         doMoveIfPossible(dir);
     }
 
-    private void doMoveIfPossible(Dir dir) {
+    private boolean doMoveIfPossible(Dir dir) {
         if (handStone != null && dir != null && dir != Dir.O) {
             Vec where = new Vec();
             if (handStone.canMove(dir.vec(), where)) {
-                handStone.doMoveTo(where);
+                return handStone.doMoveTo(where);
             }
         }
+        return false;
     }
 
     private boolean isAnimatingMove() {
@@ -154,6 +185,26 @@ public class MyGdxGame extends ApplicationAdapter {
             }
         }
         return false;
+    }
+
+    boolean isVictory() {
+        int metTargets = 0;
+        for (Grid.Stone stone : grid.stones) {
+            if (grid.getField(stone.pos).type == Type.TARGET) {
+                metTargets++;
+            }
+        }
+        // TODO multiple targets
+        return (metTargets == 1);
+    }
+
+    private void animateVictory() {
+        float duration = 3; // seconds
+        winAnimation.addAction(
+        Actions.parallel(
+        Actions.alpha(1, duration),
+        Actions.scaleBy(2, 2, duration)
+        ));
     }
 
     class MoveInputProcessor extends InputAdapter {
@@ -173,6 +224,7 @@ public class MyGdxGame extends ApplicationAdapter {
             if (touchedActor instanceof Grid.Stone) {
                 handStone = ((Grid.Stone) touchedActor);
                 Gdx.app.log("touchDown", String.format("grabbed %s", handStone));
+                handStone.setColor(0, 1, 0, 1);
                 return true;
             }
             return false;
@@ -202,12 +254,16 @@ public class MyGdxGame extends ApplicationAdapter {
 
         @Override
         public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+            if (isAnimatingMove()) {
+                return false;
+            } else if (victoryShown) {
+                startNextLevel();
+                return true;
+            }
 
             unproject(screenX, screenY);
 
-            doMoveIfPossible(moveDir);
-//            return stage.touchUp(touchPos.x, touchPos.y, pointer, button);
-            return false;
+            return doMoveIfPossible(moveDir);
         }
 
         private void unproject(int screenX, int screenY) {

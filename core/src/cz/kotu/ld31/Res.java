@@ -20,8 +20,11 @@ public class Res {
     TextureRegion stone1 = subregion(0, 0);
     TextureRegion ground1 = subregion(2, 1);
     TextureRegion solid1 = subregion(1, 7);
+    TextureRegion target1 = subregion(1, 3);
 
     TextureRegion questionMark = subregion(4, 2);
+
+    TextureRegion green = subregion(0, 5);
 
     static Res getInstance() {
         return instance;
@@ -39,7 +42,10 @@ public class Res {
             case STONE:
                 return stone1;
             case BORDER:
+            case SOLID:
                 return solid1;
+            case TARGET:
+                return target1;
             default:
                 return questionMark;
         }
