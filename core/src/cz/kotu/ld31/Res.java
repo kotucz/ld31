@@ -21,6 +21,7 @@ public class Res {
     TextureRegion ground1 = subregion(2, 1);
     TextureRegion solid1 = subregion(1, 7);
     TextureRegion target1 = subregion(1, 3);
+    TextureRegion target2 = subregion(4, 4);
 
     TextureRegion questionMark = subregion(4, 2);
 

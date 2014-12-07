@@ -56,15 +56,28 @@ public class Grid extends Actor {
         Color color = getColor();
         batch.setColor(color.r, color.g, color.b, color.a * parentAlpha);
 
-        int border = 2;
+        int border = 0;
         for (int y = 0 - border; y < height + border; y++) {
             for (int x = 0 - border; x < width + border; x++) {
                 Grid.Field field = getField(x, y);
 
-                TextureRegion texture = res.getTextureForType(field.type);
-                if (texture != null) {
-                    batch.draw(texture, x, y, 1, 1);
+                switch (field.type) {
+                    case TARGET:
+
+                        batch.draw(res.ground1, x, y, 1, 1);
+                        Color tmpColor = batch.getColor();
+                        batch.setColor(0, 1.f, 0, 0.4f);
+                        batch.draw(res.target2, x, y, 1, 1);
+                        batch.setColor(tmpColor);
+
+                        break;
+                    default:
+                        TextureRegion texture = res.getTextureForType(field.type);
+                        if (texture != null) {
+                            batch.draw(texture, x, y, 1, 1);
+                        }
                 }
+
 
             }
         }

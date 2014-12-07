@@ -56,6 +56,17 @@ public class Levels {
     "0  X  0"
     );
 
+    final Level level7_2_22 = new Level(
+    7, 7,
+    "  X    " +
+    "     X " +
+    " X     " +
+    " X T   " +
+    "  X  X " +
+    "X     X" +
+    "0  X  0"
+    );
+
     final Level level7_2_3 = new Level(
     7, 7,
     "  X    " +
@@ -65,6 +76,17 @@ public class Levels {
     " X   X " +
     "X     X" +
     "0  X  0"
+    );
+
+    final Level level7_2_4 = new Level(
+    7, 7,
+    "  X    " +
+    "    X  " +
+    " X     " +
+    "   T   " +
+    " X   X " +
+    "X     X" +
+    "0 X X 0"
     );
 
     final Level level7_4 = new Level(
@@ -85,7 +107,9 @@ public class Levels {
     level5_2,
     level7_2_1,
     level7_2_2,
+    level7_2_22,
     level7_2_3,
+//    level7_2_4, not solvable
     level7_4,
     };
 

@@ -1,22 +1,25 @@
 package cz.kotu.ld31;
 
-import com.badlogic.gdx.ApplicationAdapter;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
-import com.badlogic.gdx.InputAdapter;
+import com.badlogic.gdx.*;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
-import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.utils.Align;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 
 public class MyGdxGame extends ApplicationAdapter {
 
-    public static final boolean DEBUG = true;
+    public static final boolean DEBUG = false;
 
     Res res;
 
@@ -26,11 +29,13 @@ public class MyGdxGame extends ApplicationAdapter {
     ExtendViewport viewport;
     Stage stage;
 
+    float unitPx = 20;
     Grid grid;
     Grid.Stone handStone;
-    Image winAnimation;
+    Actor winAnimation;
     boolean victoryShown;
     int currentLevel;
+    Group boardGroup;
 
     @Override
     public void create() {
@@ -40,7 +45,7 @@ public class MyGdxGame extends ApplicationAdapter {
 
         batch = new SpriteBatch();
 
-        viewport = new ExtendViewport(20, 15);
+        viewport = new ExtendViewport(320, 240);
         stage = new Stage(viewport);
 
         if (DEBUG) {
@@ -48,7 +53,9 @@ public class MyGdxGame extends ApplicationAdapter {
             currentLevel = 2;
         }
 
-        Gdx.input.setInputProcessor(new MoveInputProcessor());
+        Gdx.input.setInputProcessor(new InputMultiplexer(
+        stage,
+        new MoveInputProcessor()));
 
         resetLevel();
     }
@@ -66,18 +73,16 @@ public class MyGdxGame extends ApplicationAdapter {
     void resetLevel() {
         stage.getActors().clear();
 
-        viewport.setMinWorldWidth(9);
-        viewport.setMinWorldHeight(9);
-
         loadLevel(levels.LIST[currentLevel]);
 
         victoryShown = false;
         winAnimation = new Image(res.green);
-        winAnimation.setColor(1, 1, 1, 0);
-        winAnimation.setPosition(5, 5);
-        winAnimation.setScale(1f / 32);
-        winAnimation.setBounds(0, 0, 1, 1);
+        winAnimation.setBounds(0, 0, 240, 240);
+        winAnimation.setOrigin(Align.center);
+        resetVictoryAnimation();
         stage.addActor(winAnimation);
+
+        setupUi();
     }
 
     void startNextLevel() {
@@ -85,9 +90,16 @@ public class MyGdxGame extends ApplicationAdapter {
         resetLevel();
     }
 
+    void startLevel(int level) {
+        currentLevel = level;
+        resetLevel();
+    }
+
     public void loadLevel(Level level) {
+        Group group = new Group();
+
         grid = new Grid(level.width, level.height);
-        stage.addActor(grid);
+        group.addActor(grid);
 
         int i = 0;
         for (int y = level.height - 1; y >= 0; y--) {
@@ -98,7 +110,7 @@ public class MyGdxGame extends ApplicationAdapter {
                         break;
                     case '0':
                         Grid.Stone stone = grid.putStone(new Vec(x, y));
-                        stage.addActor(stone);
+                        group.addActor(stone);
                         // just select one
                         handStone = stone;
                         break;
@@ -117,6 +129,66 @@ public class MyGdxGame extends ApplicationAdapter {
                 i++;
             }
         }
+
+        boardGroup = group;
+        stage.addActor(group);
+    }
+
+    private void setupUi() {
+        Table table = new Table();
+        table.setFillParent(true);
+        Skin skin = new Skin();
+        BitmapFont bitmapFont = new BitmapFont();
+        skin.add("default", bitmapFont);
+        Label.LabelStyle labelStyle = new Label.LabelStyle(bitmapFont, Color.WHITE);
+        skin.add("default", labelStyle);
+        table.setSkin(skin);
+
+        table.add().center().width(240);
+
+        TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle();
+        buttonStyle.font = bitmapFont;
+        buttonStyle.up = new TextureRegionDrawable(res.stone1);
+
+        {
+            final int perRow = 2;
+            Table menuTable = new Table();
+            menuTable.setSkin(skin);
+            menuTable.add("MENU").colspan(perRow);
+            menuTable.row();
+
+            int rb = 0; // num buttons on row
+            for (int lvl = 0; lvl < levels.LIST.length; lvl++) {
+                addLevelButton(menuTable, buttonStyle, lvl);
+                rb++;
+                if (rb == perRow) {
+                    menuTable.row();
+                    rb = 0;
+                }
+            }
+            if (rb != 0) {
+                menuTable.row();
+            }
+            menuTable.add("#LD31").colspan(perRow);
+            menuTable.row();
+            menuTable.add("@kotucz").colspan(perRow);
+            table.add(menuTable).expand();
+        }
+
+
+        stage.addActor(table);
+    }
+
+    private void addLevelButton(Table menuTable, TextButton.TextButtonStyle buttonStyle, final int level) {
+        TextButton button = new TextButton("" + level, buttonStyle);
+        button.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                Gdx.app.log("button pressed", "level " + level);
+                startLevel(level);
+            }
+        });
+        menuTable.add(button);
     }
 
     @Override
@@ -139,15 +211,32 @@ public class MyGdxGame extends ApplicationAdapter {
 
         stage.act(Gdx.graphics.getDeltaTime());
 
+        updateGridPos();
+
+        highlightStones();
+
         // TODO set nice background image
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         batch.setProjectionMatrix(viewport.getCamera().combined);
 
-        highlightStones();
-
         stage.draw();
+    }
+
+    private void updateGridPos() {
+
+//        float availableWidth = viewport.getWorldWidth();
+        float availableWidth = 240;
+        float availableHeight = viewport.getWorldHeight();
+//        float scale = Math.min(availableWidth / grid.width, viewport.getWorldHeight() / grid.height);
+        float scale = availableWidth / Math.max(grid.width, 8);
+        boardGroup.setScale(scale);
+        float newWidth = grid.width * scale;
+        float newHeight = grid.height * scale;
+        boardGroup.setPosition((availableWidth - newWidth) / 2, (availableHeight - newHeight) / 2);
+
+        unitPx = scale;
     }
 
     void processInput() {
@@ -221,6 +310,11 @@ public class MyGdxGame extends ApplicationAdapter {
                 return true;
             }
         }
+        for (Actor actor : boardGroup.getChildren()) {
+            if (actor.getActions().size > 0) {
+                return true;
+            }
+        }
         return false;
     }
 
@@ -235,12 +329,19 @@ public class MyGdxGame extends ApplicationAdapter {
         return (metTargets == 1);
     }
 
+    private void resetVictoryAnimation() {
+        winAnimation.setColor(1, 1, 1, 0);
+        winAnimation.setScale(0.5f);
+    }
+
     private void animateVictory() {
-        float duration = 3; // seconds
+        float durationAlpha = 1.5f; // seconds
+        float durationScale = 2; // seconds
+        Interpolation interpolation = Interpolation.bounceOut;
         winAnimation.addAction(
         Actions.parallel(
-        Actions.alpha(1, duration),
-        Actions.scaleBy(2, 2, duration)
+        Actions.alpha(1, durationAlpha),
+        Actions.scaleTo(1, 1, durationScale, interpolation)
         ));
     }
 
@@ -276,7 +377,7 @@ public class MyGdxGame extends ApplicationAdapter {
             dragDir.set(touchPos);
             dragDir.sub(startDragPos);
 
-            if (1 * 1 < dragDir.len2()) {
+            if (unitPx * unitPx < dragDir.len2()) {
                 if (Math.abs(dragDir.x) < Math.abs(dragDir.y)) {
                     moveDir = dragDir.y < 0 ? Dir.S : Dir.N;
                 } else {
