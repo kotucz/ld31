@@ -36,10 +36,12 @@ public class MyGdxGame extends ApplicationAdapter {
     Grid.Stone handStone;
     Actor winAnimation;
     TextButton[] levelButtons;
+    Label movesLabel;
     boolean victoryShown;
     int currentLevel;
     int currentTargets;
     Group boardGroup;
+    int currentLevelMoves;
 
     @Override
     public void create() {
@@ -79,6 +81,7 @@ public class MyGdxGame extends ApplicationAdapter {
         stage.getActors().clear();
 
         currentTargets = 0;
+        currentLevelMoves = 0;
         victoryShown = false;
 
         boardGroup = new Group();
@@ -165,10 +168,15 @@ public class MyGdxGame extends ApplicationAdapter {
         buttonStyle.font = bitmapFont;
         buttonStyle.up = new TextureRegionDrawable(res.stone);
 
+        movesLabel = new Label("moves:", labelStyle);
+
         {
             final int perRow = 2;
             Table menuTable = new Table();
             menuTable.setSkin(skin);
+
+            menuTable.add(movesLabel).colspan(perRow);
+            menuTable.row();
 
             int rb = 0; // num buttons on row
             levelButtons = new TextButton[levels.LIST.length];
@@ -237,6 +245,8 @@ public class MyGdxGame extends ApplicationAdapter {
 
         highlightLevels();
 
+        updateMovesLabel();
+
         // perform drawing
 
         Gdx.gl.glClearColor(0, 0, 0, 1);
@@ -265,6 +275,10 @@ public class MyGdxGame extends ApplicationAdapter {
         boardGroup.setPosition((availableWidth - newWidth) / 2, (availableHeight - newHeight) / 2);
 
         unitPx = scale;
+    }
+
+    private void updateMovesLabel() {
+        movesLabel.setText("moves: " + currentLevelMoves + " ");
     }
 
     void processInput() {
@@ -301,7 +315,10 @@ public class MyGdxGame extends ApplicationAdapter {
         if (handStone != null && dir != null && dir != Dir.O) {
             Vec where = new Vec();
             if (handStone.canMove(dir.vec(), where)) {
-                return handStone.doMoveTo(where);
+                if (handStone.doMoveTo(where)) {
+                    currentLevelMoves++;
+                    return true;
+                }
             }
         }
         return false;
