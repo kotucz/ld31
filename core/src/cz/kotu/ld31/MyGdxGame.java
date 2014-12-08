@@ -21,6 +21,8 @@ public class MyGdxGame extends ApplicationAdapter {
 
     public static final boolean DEBUG = false;
 
+    final Color DARK_GREEN = new Color(0, 0.5f, 0, 1);
+
     Res res;
 
     Levels levels;
@@ -36,6 +38,7 @@ public class MyGdxGame extends ApplicationAdapter {
     TextButton[] levelButtons;
     boolean victoryShown;
     int currentLevel;
+    int currentTargets;
     Group boardGroup;
 
     @Override
@@ -51,8 +54,8 @@ public class MyGdxGame extends ApplicationAdapter {
         stage = new Stage(viewport);
 
         if (DEBUG) {
-            stage.setDebugAll(true);
-            currentLevel = 2;
+//            stage.setDebugAll(true);
+//            currentLevel = 7;
         }
 
         Gdx.input.setInputProcessor(new InputMultiplexer(
@@ -103,6 +106,7 @@ public class MyGdxGame extends ApplicationAdapter {
         grid = new Grid(level.width, level.height);
         group.addActor(grid);
 
+        currentTargets = 0;
         int i = 0;
         for (int y = level.height - 1; y >= 0; y--) {
             for (int x = 0; x < level.width; x++) {
@@ -121,6 +125,7 @@ public class MyGdxGame extends ApplicationAdapter {
                         break;
                     case 'T':
                         grid.getField(x, y).type = Type.TARGET;
+                        currentTargets++;
                         break;
                     case 'H':
                         grid.getField(x, y).type = Type.HOLE;
@@ -300,7 +305,7 @@ public class MyGdxGame extends ApplicationAdapter {
             if (currentLevel == i) {
                 color = Color.WHITE;
             } else if (i < currentLevel) {
-                color = new Color(0, 0.5f, 0, 1);
+                color = DARK_GREEN;
             } else {
                 color = Color.GRAY;
             }
@@ -316,7 +321,11 @@ public class MyGdxGame extends ApplicationAdapter {
         for (Grid.Stone stone : grid.stones) {
             Color color;
             if (stone.isOnTarget()) {
-                color = Color.GREEN;
+                if (handStone == stone) {
+                    color = Color.GREEN;
+                } else {
+                    color = DARK_GREEN;
+                }
             } else if (handStone == stone) {
                 color = Color.WHITE;
             } else {
@@ -354,23 +363,23 @@ public class MyGdxGame extends ApplicationAdapter {
                 metTargets++;
             }
         }
-        // TODO multiple targets
-        return (metTargets == 1);
+        return (metTargets == currentTargets);
     }
 
     private void resetVictoryAnimation() {
         winAnimation.setColor(1, 1, 1, 0);
-        winAnimation.setScale(0.5f);
+        winAnimation.setScale(0.25f);
     }
 
     private void animateVictory() {
         float durationAlpha = 1.5f; // seconds
         float durationScale = 2; // seconds
+        float finalScale = 0.5f; // percent of screen
         Interpolation interpolation = Interpolation.bounceOut;
         winAnimation.addAction(
         Actions.parallel(
         Actions.alpha(1, durationAlpha),
-        Actions.scaleTo(1, 1, durationScale, interpolation)
+        Actions.scaleTo(finalScale, finalScale, durationScale, interpolation)
         ));
     }
 
