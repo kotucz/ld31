@@ -10,6 +10,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.Align;
@@ -96,6 +97,7 @@ public class MyGdxGame extends ApplicationAdapter {
         winAnimation = new Image(res.win);
         winAnimation.setBounds(0, 0, 240, 240);
         winAnimation.setOrigin(Align.center);
+        winAnimation.setTouchable(Touchable.disabled);
         resetVictoryAnimation();
         stage.addActor(winAnimation);
 
