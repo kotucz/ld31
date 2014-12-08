@@ -78,9 +78,18 @@ public class MyGdxGame extends ApplicationAdapter {
     void resetLevel() {
         stage.getActors().clear();
 
-        loadLevel(levels.LIST[currentLevel]);
-
+        currentTargets = 0;
         victoryShown = false;
+
+        boardGroup = new Group();
+        stage.addActor(boardGroup);
+
+        if (currentLevel < levels.LIST.length) {
+            loadLevel(boardGroup, levels.LIST[currentLevel]);
+        } else {
+            // show thanx -> targetCount==0
+        }
+
         winAnimation = new Image(res.win);
         winAnimation.setBounds(0, 0, 240, 240);
         winAnimation.setOrigin(Align.center);
@@ -100,13 +109,11 @@ public class MyGdxGame extends ApplicationAdapter {
         resetLevel();
     }
 
-    public void loadLevel(Level level) {
-        Group group = new Group();
+    public void loadLevel(Group group, Level level) {
 
         grid = new Grid(level.width, level.height);
         group.addActor(grid);
 
-        currentTargets = 0;
         int i = 0;
         for (int y = level.height - 1; y >= 0; y--) {
             for (int x = 0; x < level.width; x++) {
@@ -137,8 +144,6 @@ public class MyGdxGame extends ApplicationAdapter {
             }
         }
 
-        boardGroup = group;
-        stage.addActor(group);
     }
 
     private void setupUi() {
@@ -151,7 +156,10 @@ public class MyGdxGame extends ApplicationAdapter {
         skin.add("default", labelStyle);
         table.setSkin(skin);
 
-        table.add().center().width(240);
+        Container thanksLabel = new Container<>(new Label("Thanks for playing!", labelStyle)).pad(42);
+        // no level has 0 targets
+        thanksLabel.setVisible(currentTargets == 0);
+        table.add(thanksLabel).align(Align.top).width(240);
 
         TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle();
         buttonStyle.font = bitmapFont;
